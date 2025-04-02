@@ -28,11 +28,40 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to Data Stories API"}
 
+from datetime import datetime
+
+def validate_date_format(date_str: str) -> bool:
+    if not date_str:
+        return True
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
 @app.get("/api/sinkings/monthly")
 async def get_monthly_sinkings(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
 ):
+    # Validate date formats
+    if start_date and not validate_date_format(start_date):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "status": "error",
+                "message": f"Invalid start_date format: {start_date}. Expected format: YYYY-MM-DD"
+            }
+        )
+    
+    if end_date and not validate_date_format(end_date):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "status": "error",
+                "message": f"Invalid end_date format: {end_date}. Expected format: YYYY-MM-DD"
+            }
+        )
     try:
         # Get data from database
         df = aggregate_monthly_sinkings(start_date, end_date)
@@ -42,6 +71,9 @@ async def get_monthly_sinkings(
         
         # Format dates for JSON
         for item in data:
+            if isinstance(item['sunk_month_year'], str):
+                # Already formatted
+                continue
             item['sunk_month_year'] = item['sunk_month_year'].strftime('%Y-%m-%d')
         
         return JSONResponse(content={
@@ -49,11 +81,15 @@ async def get_monthly_sinkings(
             "data": data
         })
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in get_monthly_sinkings: {str(e)}\n{error_details}")
         return JSONResponse(
             status_code=500,
             content={
                 "status": "error",
-                "message": str(e)
+                "message": str(e),
+                "details": error_details
             }
         )
 
