@@ -40,9 +40,26 @@ jobs:
         # exit-zero treats all errors as warnings
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         
-    - name: Create test database
+    - name: Set up test database
       run: |
         mysql -h127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS data_stories_test;"
+        mysql -h127.0.0.1 -uroot -proot data_stories_test -e "
+          CREATE TABLE IF NOT EXISTS japan_naval_sinkings (
+            sunk_id INT AUTO_INCREMENT PRIMARY KEY,
+            sunk_month_year DATE,
+            sunk_date DATE,
+            sunk_type_vessel TEXT,
+            sunk_standard_tonnage TEXT
+          );
+          
+          INSERT INTO japan_naval_sinkings (sunk_month_year, sunk_date, sunk_type_vessel, sunk_standard_tonnage)
+          VALUES 
+            ('1941-12-01', '1941-12-07', 'Battleship', '35000'),
+            ('1941-12-01', '1941-12-07', 'Destroyer', '1800'),
+            ('1941-12-01', '1941-12-10', 'Cruiser', '9000'),
+            ('1942-01-01', '1942-01-15', 'Destroyer', '1500'),
+            ('1942-02-01', '1942-02-15', 'Cruiser', '5000'),
+            ('1942-03-01', '1942-03-15', 'Battleship', '20000');"
         
     - name: Run tests with pytest
       env:

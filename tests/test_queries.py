@@ -24,5 +24,5 @@ def test_aggregate_monthly_sinkings():
     # Test specific month (December 1941)
     df_dec_1941 = aggregate_monthly_sinkings('1941-12-01', '1941-12-31')
     assert len(df_dec_1941) == 1
-    assert df_dec_1941.iloc[0]['total_sinkings'] == 24  # Known value from our data
-    assert df_dec_1941.iloc[0]['total_tonnage'] == 71426.0  # Known value from our data
+    assert df_dec_1941.iloc[0]['total_sinkings'] == 3  # 3 ships in test data
+    assert df_dec_1941.iloc[0]['total_tonnage'] == 45800.0  # Sum of tonnage in test data
